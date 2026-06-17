@@ -36,6 +36,24 @@ class VectorStore:
             self.vectorizer = None
             self.vectors = None
 
+    def add(self, texts, metadata=None):
+        if not texts:
+            return
+        if metadata is None:
+            metadata = [{} for _ in texts]
+        self.chunks.extend(texts)
+        self.metadata.extend(metadata)
+        if not self.chunks:
+            self.vectorizer = None
+            self.vectors = None
+            return
+        try:
+            self.vectorizer = TfidfVectorizer()
+            self.vectors = self.vectorizer.fit_transform(self.chunks)
+        except Exception:
+            self.vectorizer = None
+            self.vectors = None
+
     def search(self, query, top_k=3):
         if not self.chunks:
             return []
