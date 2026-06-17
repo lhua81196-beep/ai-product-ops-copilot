@@ -822,7 +822,7 @@ def render_knowledge_base():
                 if results:
                     scores = [item.get("score", 0) or 0 for item in results]
                     max_score = max(scores)
-                    if max_score >= 0.2:
+                    if max_score >= 0.05:
                         use_rag = True
                         rag_context = "\n\n".join(
                             f"【来源】{item['meta'].get('source', 'unknown')}\n{item['content']}"
