@@ -845,6 +845,7 @@ def render_knowledge_base():
             else:
                 if st.session_state.get("knowledge_docs"):
                     st.info("⚠️ ????????????")
+                    return
                 else:
                     sys = "You are a helpful AI assistant. Answer the user directly and concisely in Chinese."
                     usr = question.strip()
