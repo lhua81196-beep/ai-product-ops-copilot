@@ -757,7 +757,7 @@ def render_knowledge_base():
     if "knowledge_docs" not in st.session_state:
         st.session_state["knowledge_docs"] = {}
         if "vector_store" not in st.session_state:
-            st.session_state["vector_store"] = VectorStore()
+            st.session_state["vector_store"] = VectorStore([])
 
     uploaded_files = st.file_uploader(
         "上传竞品资料（PDF 格式，可多选）",
