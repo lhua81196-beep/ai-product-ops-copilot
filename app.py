@@ -757,7 +757,7 @@ def render_knowledge_base():
     if "knowledge_docs" not in st.session_state:
         st.session_state["knowledge_docs"] = {}
         if "vector_store" not in st.session_state:
-            st.session_state["vector_store"] = VectorStore([])
+            st.session_state["vector_store"] = VectorStore()
 
     uploaded_files = st.file_uploader(
         "上传竞品资料（PDF 格式，可多选）",
@@ -779,7 +779,7 @@ def render_knowledge_base():
                     }
                     chunks = split_text(text)
                     chunk_meta = [{"source": file.name} for _ in chunks]
-                    st.session_state["vector_store"] = VectorStore(chunks)
+                    st.session_state["vector_store"].add(chunks, chunk_meta)
                     st.success(f"✅ 已加载: {file.name}")
                 except Exception as e:
                     st.error(f"解析失败: {file.name} — {e}")
@@ -813,43 +813,23 @@ def render_knowledge_base():
             st.warning("知识库为空，请先上传 PDF 文件。")
             return
 
-    vs = st.session_state.get("vector_store")
-
-    rag_context = ""
-    use_rag = False
-
-    try:
-        if vs and getattr(vs, "texts", None):
-
-            results = vs.search(question.strip(), top_k=3)
-
-            if results:
-
-            # ======================
-            # 安全取分数
-            # ======================
-                scores = [item.get("score", 0) or 0 for item in results]
-                max_score = max(scores) if scores else 0
-
-            # ======================
-            # 🔥 RAG触发策略（优化版）
-            # ======================
-                if max_score >= 0.02:
-                    use_rag = True
-
-            # ======================
-            # 🔥 强制构建上下文（避免空RAG）
-            # ======================
-                rag_context = "\n\n".join(
-                    f"【来源】{item.get('meta', {}).get('source', 'unknown')}\n"
-                    f"{item.get('content') or item.get('text', '')}"
-                    for item in results
-                )
-
-    except Exception as e:
-        print("RAG error:", e)
-        pass  # 检索失败直接降级问答
-            
+        vs = st.session_state.get("vector_store")
+        rag_context = None
+        use_rag = False
+        try:
+            if vs and vs.texts:
+                results = vs.search(question.strip(), top_k=3)
+                if results:
+                    scores = [item.get("score", 0) or 0 for item in results]
+                    max_score = max(scores)
+                    if max_score >= 0.2:
+                        use_rag = True
+                        rag_context = "\n\n".join(
+                            f"【来源】{item['meta'].get('source', 'unknown')}\n{item['content']}"
+                            for item in results
+                        )
+        except Exception:
+            pass  # 检索失败时降级到直接问答
 
         with st.spinner("DeepSeek 正在回答中..."):
             placeholder = st.empty()
@@ -863,8 +843,11 @@ def render_knowledge_base():
                 )
                 usr = question.strip()
             else:
-                sys = "You are a helpful AI assistant. Answer the user directly and concisely in Chinese."
-                usr = question.strip()
+                if st.session_state.get("knowledge_docs"):
+                    st.info("⚠️ ????????????")
+                else:
+                    sys = "You are a helpful AI assistant. Answer the user directly and concisely in Chinese."
+                    usr = question.strip()
             for chunk in chat_stream(
                 sys,
                 usr,
