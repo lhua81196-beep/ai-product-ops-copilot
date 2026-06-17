@@ -779,7 +779,7 @@ def render_knowledge_base():
                     }
                     chunks = split_text(text)
                     chunk_meta = [{"source": file.name} for _ in chunks]
-                    st.session_state["vector_store"].add(chunks, chunk_meta)
+                    st.session_state["vector_store"] = VectorStore(chunks)
                     st.success(f"✅ 已加载: {file.name}")
                 except Exception as e:
                     st.error(f"解析失败: {file.name} — {e}")
