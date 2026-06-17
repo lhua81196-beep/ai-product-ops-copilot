@@ -822,9 +822,8 @@ def render_knowledge_base():
                 if results:
                     scores = [item.get("score", 0) or 0 for item in results]
                     max_score = max(scores)
-                    if max_score >= 0.2:
-                        use_rag = True
-                        rag_context = "\n\n".join(
+                    use_rag = True
+                    rag_context = "\n\n".join(
                             f"【来源】{item['meta'].get('source', 'unknown')}\n{item['content']}"
                             for item in results
                         )
@@ -843,12 +842,8 @@ def render_knowledge_base():
                 )
                 usr = question.strip()
             else:
-                if st.session_state.get("knowledge_docs"):
-                    st.info("⚠️ 知识库中未找到相关内容。")
-                    return
-                else:
-                    sys = "You are a helpful AI assistant. Answer the user directly and concisely in Chinese."
-                    usr = question.strip()
+                sys = "You are a helpful AI assistant. Answer the user directly and concisely in Chinese."
+                usr = question.strip()
             for chunk in chat_stream(
                 sys,
                 usr,
