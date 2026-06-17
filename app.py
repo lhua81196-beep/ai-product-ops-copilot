@@ -844,7 +844,7 @@ def render_knowledge_base():
                 usr = question.strip()
             else:
                 if st.session_state.get("knowledge_docs"):
-                    st.info("⚠️ ????????????")
+                    st.info("⚠️ 知识库中未找到相关内容。")
                     return
                 else:
                     sys = "You are a helpful AI assistant. Answer the user directly and concisely in Chinese."
