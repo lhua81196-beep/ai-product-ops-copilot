@@ -22,8 +22,8 @@ def split_text(text, chunk_size=500):
 
 
 class VectorStore:
-    def __init__(self, chunks, metadata=None):
-        self.chunks = chunks or []
+    def __init__(self, chunks=None, metadata=None):
+        self.chunks = chunks if chunks else []
         self.metadata = metadata or [{} for _ in self.chunks]
         if not self.chunks:
             self.vectorizer = None
