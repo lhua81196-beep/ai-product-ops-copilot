@@ -813,23 +813,43 @@ def render_knowledge_base():
             st.warning("知识库为空，请先上传 PDF 文件。")
             return
 
-        vs = st.session_state.get("vector_store")
-        rag_context = None
-        use_rag = False
-        try:
-            if vs and vs.texts:
-                results = vs.search(question.strip(), top_k=3)
-                if results:
-                    scores = [item.get("score", 0) or 0 for item in results]
-                    max_score = max(scores)
-                    if max_score >= 0.05:
-                        use_rag = True
-                        rag_context = "\n\n".join(
-                            f"【来源】{item['meta'].get('source', 'unknown')}\n{item['content']}"
-                            for item in results
-                        )
-        except Exception:
-            pass  # 检索失败时降级到直接问答
+    vs = st.session_state.get("vector_store")
+
+    rag_context = ""
+    use_rag = False
+
+    try:
+        if vs and getattr(vs, "texts", None):
+
+            results = vs.search(question.strip(), top_k=3)
+
+            if results:
+
+            # ======================
+            # 安全取分数
+            # ======================
+                scores = [item.get("score", 0) or 0 for item in results]
+                max_score = max(scores) if scores else 0
+
+            # ======================
+            # 🔥 RAG触发策略（优化版）
+            # ======================
+                if max_score >= 0.02:
+                    use_rag = True
+
+            # ======================
+            # 🔥 强制构建上下文（避免空RAG）
+            # ======================
+                rag_context = "\n\n".join(
+                    f"【来源】{item.get('meta', {}).get('source', 'unknown')}\n"
+                    f"{item.get('content') or item.get('text', '')}"
+                    for item in results
+                )
+
+    except Exception as e:
+        print("RAG error:", e)
+        pass  # 检索失败直接降级问答
+            
 
         with st.spinner("DeepSeek 正在回答中..."):
             placeholder = st.empty()
