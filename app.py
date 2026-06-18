@@ -785,7 +785,7 @@ def render_knowledge_base():
 
         results = kb.search(question.strip(), top_k=3)
 
-        if results and results[0]["score"] >= 0.15:
+        if results and results[0]["score"] >= 0.08:
             context = "\n\n".join(
                 f"【{r['topic']}】\n{r['content']}"
                 for r in results
