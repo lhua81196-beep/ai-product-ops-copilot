@@ -1,79 +1,47 @@
-# -*- coding: utf-8 -*-
-import re
+import json, os, numpy as np
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 
+class EnterpriseKnowledgeBase:
+    def __init__(self, json_path=None):
+        self.topics = []
+        self.contents = []
+        self.vectorizer = None
+        self.matrix = None
+        self.ready = False
+        self.size = 0
+        if json_path and os.path.exists(json_path):
+            self.load_from_json(json_path)
 
-def split_text(text, chunk_size=500):
-    if not text:
-        return []
-    sentences = re.split(r'(?<=[。.!?])\s*', text)
-    chunks, buf = [], ''
-    for s in sentences:
-        if len(buf) + len(s) < chunk_size:
-            buf += s
-        else:
-            if buf:
-                chunks.append(buf)
-            buf = s
-    if buf:
-        chunks.append(buf)
-    return chunks if chunks else [text[:chunk_size]]
-
-
-class VectorStore:
-    def __init__(self, chunks=None, metadata=None):
-        self.chunks = chunks if chunks else []
-        self.metadata = metadata or [{} for _ in self.chunks]
-        if not self.chunks:
-            self.vectorizer = None
-            self.vectors = None
+    def load_from_json(self, json_path):
+        with open(json_path, "r", encoding="utf-8") as f:
+            data = json.load(f)
+        self.topics = [item["topic"] for item in data]
+        self.contents = [item["content"] for item in data]
+        self.size = len(self.topics)
+        if not self.contents:
+            self.ready = False
             return
         try:
             self.vectorizer = TfidfVectorizer()
-            self.vectors = self.vectorizer.fit_transform(self.chunks)
+            self.matrix = self.vectorizer.fit_transform(self.contents)
+            self.ready = True
         except Exception:
             self.vectorizer = None
-            self.vectors = None
-
-    def add(self, texts, metadata=None):
-        if not texts:
-            return
-        if metadata is None:
-            metadata = [{} for _ in texts]
-        self.chunks.extend(texts)
-        self.metadata.extend(metadata)
-        if not self.chunks:
-            self.vectorizer = None
-            self.vectors = None
-            return
-        try:
-            self.vectorizer = TfidfVectorizer()
-            self.vectors = self.vectorizer.fit_transform(self.chunks)
-        except Exception:
-            self.vectorizer = None
-            self.vectors = None
+            self.matrix = None
+            self.ready = False
 
     def search(self, query, top_k=3):
-        if not self.chunks:
+        if not self.ready or not query.strip():
             return []
-        if self.vectors is None:
-            return [{'content': c, 'meta': self.metadata[i], 'score': 0.0}
-                    for i, c in enumerate(self.chunks[:top_k])]
-        try:
-            q_vec = self.vectorizer.transform([query])
-            scores = cosine_similarity(q_vec, self.vectors)[0]
-            top_idx = scores.argsort()[-top_k:][::-1]
-            results = []
-            for i in top_idx:
-                meta = self.metadata[i] if i < len(self.metadata) else {}
-                results.append({'content': self.chunks[i], 'meta': meta, 'score': float(scores[i])})
-            return results
-        except Exception:
-            return [{'content': self.chunks[0], 'meta': {}, 'score': 0.0}] if self.chunks else []
-
-
-def build_knowledge_base(pdf_text, source='unknown'):
-    chunks = split_text(pdf_text)
-    metadata = [{'source': source, 'chunk_id': i} for i in range(len(chunks))]
-    return VectorStore(chunks, metadata)
+        query_vec = self.vectorizer.transform([query])
+        scores = cosine_similarity(query_vec, self.matrix)[0]
+        top_idx = np.argsort(scores)[::-1][:top_k]
+        results = []
+        for i in top_idx:
+            results.append({
+                "topic": self.topics[i],
+                "content": self.contents[i],
+                "score": float(scores[i])
+            })
+        return results
