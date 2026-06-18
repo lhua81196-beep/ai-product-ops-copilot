@@ -755,8 +755,9 @@ def render_knowledge_base():
                 '<p>基于结构化知识库的智能问答系统。</p>'
                 '</div>', unsafe_allow_html=True)
 
-    kb_dir = os.path.join(os.path.dirname(__file__), "knowledge_base")
-    kb_path = os.path.join(kb_dir, "core.json")
+    
+    # 把 app.py 里原来的两行改成一行
+    kb_path = os.path.join(os.path.dirname(__file__), "core.json")
 
     if "enterprise_kb" not in st.session_state:
         st.session_state["enterprise_kb"] = EnterpriseKnowledgeBase(kb_path)
