@@ -1,26 +1,34 @@
 [
   {
     "topic": "ChatGPT",
-    "content": "ChatGPT is a large language model developed by OpenAI. It is based on GPT-4 architecture. It supports text and image inputs. Pricing: ChatGPT Plus $20/month. Available via web and API. Supports writing, coding, translation, analysis."
+    "content": "ChatGPT是OpenAI开发的大语言模型，基于GPT-4架构，并通过强化学习（RLHF）优化。支持中英文对话、代码生成、内容创作、数据分析等能力。应用场景包括智能客服、办公自动化、教育辅导和编程助手。ChatGPT Plus订阅价格为每月20美元，企业版支持更高安全性与API调用能力。"
   },
   {
     "topic": "Claude",
-    "content": "Claude is an AI assistant developed by Anthropic. It focuses on safety and helpfulness. Claude excels at long-form writing, analysis, and coding. Available via web and API. Supports multiple languages including Chinese."
+    "content": "Claude是Anthropic公司开发的AI助手，重点强调安全性与对齐能力。Claude在长文本处理、文档总结、法律分析和结构化写作方面表现突出。支持超长上下文窗口，适合处理大文档分析任务。广泛应用于企业知识管理和研究场景。"
   },
   {
     "topic": "Gemini",
-    "content": "Gemini is Google's multimodal AI model. It supports text, image, video, and audio inputs. Integrated with Google ecosystem. Available through Google AI Studio and API. Strong at reasoning and multimodal understanding."
+    "content": "Gemini是Google DeepMind开发的多模态大模型，支持文本、图片、音频和视频理解。与Google搜索、Gmail、Docs等生态深度集成。适用于复杂推理、知识检索和多模态任务，是Google AI战略的核心产品。"
   },
   {
     "topic": "DeepSeek",
-    "content": "DeepSeek is a Chinese AI company developing large language models. DeepSeek-V2 offers strong performance at competitive pricing. Supports Chinese and English. Available via API with affordable token pricing."
+    "content": "DeepSeek是中国人工智能公司开发的大语言模型系列，包括DeepSeek-V2和DeepSeek-Coder。其特点是高性能和低成本，在代码生成、数学推理和中文理解方面表现优秀。API价格较低，适合开发者和企业快速集成AI能力。"
   },
   {
-    "topic": "AI Product Management",
-    "content": "AI product management involves defining product strategy for AI-powered products. Key skills: understanding ML capabilities, data strategy, model evaluation, ethical AI considerations, and cross-functional collaboration with engineers and researchers."
+    "topic": "AI产品管理",
+    "content": "AI产品管理是指围绕人工智能产品进行规划、设计和运营的工作。核心能力包括理解机器学习能力边界、数据策略设计、模型评估指标、A/B测试以及跨团队协作。常见AI产品包括聊天机器人、推荐系统、搜索系统和智能分析工具。"
   },
   {
-    "topic": "SWOT Analysis",
-    "content": "SWOT analysis is a strategic planning tool. Strengths: internal positive attributes. Weaknesses: internal negative attributes. Opportunities: external favorable factors. Threats: external unfavorable factors. Used for competitive analysis and strategy development."
+    "topic": "竞品分析方法",
+    "content": "竞品分析是产品经理常用方法，用于分析市场中不同产品的优劣势。常见方法包括功能对比、用户体验分析、价格策略分析和SWOT分析。在AI产品中，还需要考虑模型能力、响应速度、成本结构和上下文长度等指标。"
+  },
+  {
+    "topic": "SWOT分析",
+    "content": "SWOT分析是一种战略分析工具，包括四个维度：优势（Strengths）、劣势（Weaknesses）、机会（Opportunities）、威胁（Threats）。在AI产品分析中，可以用于评估模型能力、市场竞争情况和产品定位策略。"
+  },
+  {
+    "topic": "RAG检索增强生成",
+    "content": "RAG（Retrieval-Augmented Generation）是一种结合信息检索与大模型生成能力的架构。系统先从知识库中检索相关内容，再将其作为上下文输入给大模型生成答案。优点是降低幻觉、提升准确性，广泛用于企业知识库、客服系统和智能问答系统。"
   }
 ]
