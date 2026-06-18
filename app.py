@@ -16,6 +16,7 @@ import PyPDF2
 from datetime import datetime
 
 from api import chat_stream, chat_json
+from kb_engine import EnterpriseKnowledgeBase
 from rag_engine import VectorStore, split_text
 from prompts import (
     competitive_analysis_system,
@@ -124,7 +125,7 @@ def render_sidebar() -> Literal["competitive_analysis", "campaign_planning",
 
         nav_options = {
             "competitive_analysis": "📊 竞品分析",
-            "knowledge_base":      "📚 竞品知识库",
+            "knowledge_base":      "📚 企业知识库",
             "campaign_planning":   "🎯 活动策划",
             "marketing_copy":      "✍️ 营销文案",
             "weekly_report":       "📋 周报生成",
@@ -750,53 +751,25 @@ def build_context_with_sources() -> str:
 
 def render_knowledge_base():
     st.markdown('<div class="module-header">'
-                '<h1>📚 竞品知识库</h1>'
-                '<p>上传竞品 PDF 资料，构建知识库并提问。</p>'
+                '<h1>📚 企业知识库</h1>'
+                '<p>基于结构化知识库的智能问答系统。</p>'
                 '</div>', unsafe_allow_html=True)
 
-    if "knowledge_docs" not in st.session_state:
-        st.session_state["knowledge_docs"] = {}
-        if "vector_store" not in st.session_state:
-            st.session_state["vector_store"] = VectorStore()
+    kb_dir = os.path.join(os.path.dirname(__file__), "knowledge_base")
+    kb_path = os.path.join(kb_dir, "core.json")
 
-    uploaded_files = st.file_uploader(
-        "上传竞品资料（PDF 格式，可多选）",
-        accept_multiple_files=True,
-        type=["pdf"],
-    )
+    if "enterprise_kb" not in st.session_state:
+        st.session_state["enterprise_kb"] = EnterpriseKnowledgeBase(kb_path)
 
-    if uploaded_files:
-        for file in uploaded_files:
-            if file.name not in st.session_state["knowledge_docs"]:
-                try:
-                    pdf_reader = PyPDF2.PdfReader(file)
-                    text = "".join(
-                        (page.extract_text() or "") + "\n"
-                        for page in pdf_reader.pages
-                    )
-                    st.session_state["knowledge_docs"][file.name] = {
-                        "text": text, "source": file.name
-                    }
-                    chunks = split_text(text)
-                    chunk_meta = [{"source": file.name} for _ in chunks]
-                    st.session_state["vector_store"].add(chunks, chunk_meta)
-                    st.success(f"✅ 已加载: {file.name}")
-                except Exception as e:
-                    st.error(f"解析失败: {file.name} — {e}")
-
-    if st.session_state["knowledge_docs"]:
-        st.subheader("📁 已上传文件")
-        for name, data in st.session_state["knowledge_docs"].items():
-            text = data if isinstance(data, str) else data.get("text", "")
-            char_count = len(text)
-            with st.expander(f"📄 {name}（{char_count} 字符）"):
-                st.text(text[:2000] + ("..." if char_count > 2000 else ""))
+    kb = st.session_state["enterprise_kb"]
+    if kb.ready:
+        st.info(f"📚 企业知识库已加载，共 {kb.size} 条知识条目")
     else:
-        st.info("尚未上传文件，请上传 PDF 资料。")
+        st.warning("⚠️ 知识库加载失败，请检查 knowledge_base/core.json 文件")
 
     st.subheader("❓ 提问")
     question = st.text_input(
-        "输入你关于竞品的问题（基于已上传的资料）",
+        "输入你的问题",
         placeholder="例：ChatGPT 和 Claude 最大的差异是什么？",
     )
 
@@ -809,62 +782,48 @@ def render_knowledge_base():
             st.warning("请输入问题。")
             return
 
-        if not st.session_state["knowledge_docs"]:
-            st.warning("知识库为空，请先上传 PDF 文件。")
-            return
+        results = kb.search(question.strip(), top_k=3)
 
-        vs = st.session_state.get("vector_store")
-        rag_context = None
-        use_rag = False
-        try:
-            if vs and vs.texts:
-                results = vs.search(question.strip(), top_k=3)
-                if results:
-                    scores = [item.get("score", 0) or 0 for item in results]
-                    max_score = max(scores)
-                    use_rag = True
-                    rag_context = "\n\n".join(
-                            f"【来源】{item['meta'].get('source', 'unknown')}\n{item['content']}"
-                            for item in results
-                        )
-        except Exception:
-            pass  # 检索失败时降级到直接问答
+        if results and results[0]["score"] >= 0.15:
+            context = "\n\n".join(
+                f"【{r['topic']}】\n{r['content']}"
+                for r in results
+            )
+            sys = (
+                "你是企业级AI助手。\n\n"
+                "请严格基于以下知识回答问题：\n"
+                "- 不允许编造\n"
+                "- 如果知识不足，请说明\n\n"
+                f"知识如下：\n{context}"
+            )
+            source = "kb"
+        else:
+            sys = (
+                "你是一个智能AI助手。\n\n"
+                "当前知识库未覆盖该问题，请你基于通用知识进行回答。\n"
+                "要求：\n"
+                "- 回答清晰\n"
+                "- 不要提及知识库\n"
+            )
+            source = "ai"
 
         with st.spinner("DeepSeek 正在回答中..."):
             placeholder = st.empty()
             collected = ""
-            if use_rag and rag_context:
-                sys = (
-                    "你是专业的 AI 产品分析师。"
-                    "请基于以下知识库内容严格回答问题，"
-                    "不得使用未提供的信息。\n\n"
-                    f"{rag_context}"
-                )
-                usr = question.strip()
-            else:
-                sys = "You are a helpful AI assistant. Answer the user directly and concisely in Chinese."
-                usr = question.strip()
             for chunk in chat_stream(
                 sys,
-                usr,
+                question.strip(),
                 temperature=temperature,
                 max_tokens=4096,
             ):
                 collected += chunk
                 placeholder.markdown(clean_markdown(collected))
 
-        # Fallback: 如果 RAG 但 LLM 返回空，重试直接问答
-        if use_rag and not collected.strip():
-            placeholder2 = st.empty()
-            fallback = ""
-            for chunk in chat_stream(
-                "You are a helpful AI assistant. Answer the user directly and concisely in Chinese.",
-                question.strip(),
-                temperature=temperature,
-                max_tokens=4096,
-            ):
-                fallback += chunk
-                placeholder2.markdown(clean_markdown(fallback))
+        if collected.strip():
+            if source == "kb":
+                st.caption("📎 该回答基于企业知识库生成")
+            else:
+                st.caption("💡 该回答由 AI 基于通用知识生成")
 
 
 # ---------------------------------------------------------------------------
