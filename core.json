@@ -1,0 +1,26 @@
+[
+  {
+    "topic": "ChatGPT",
+    "content": "ChatGPT is a large language model developed by OpenAI. It is based on GPT-4 architecture. It supports text and image inputs. Pricing: ChatGPT Plus $20/month. Available via web and API. Supports writing, coding, translation, analysis."
+  },
+  {
+    "topic": "Claude",
+    "content": "Claude is an AI assistant developed by Anthropic. It focuses on safety and helpfulness. Claude excels at long-form writing, analysis, and coding. Available via web and API. Supports multiple languages including Chinese."
+  },
+  {
+    "topic": "Gemini",
+    "content": "Gemini is Google's multimodal AI model. It supports text, image, video, and audio inputs. Integrated with Google ecosystem. Available through Google AI Studio and API. Strong at reasoning and multimodal understanding."
+  },
+  {
+    "topic": "DeepSeek",
+    "content": "DeepSeek is a Chinese AI company developing large language models. DeepSeek-V2 offers strong performance at competitive pricing. Supports Chinese and English. Available via API with affordable token pricing."
+  },
+  {
+    "topic": "AI Product Management",
+    "content": "AI product management involves defining product strategy for AI-powered products. Key skills: understanding ML capabilities, data strategy, model evaluation, ethical AI considerations, and cross-functional collaboration with engineers and researchers."
+  },
+  {
+    "topic": "SWOT Analysis",
+    "content": "SWOT analysis is a strategic planning tool. Strengths: internal positive attributes. Weaknesses: internal negative attributes. Opportunities: external favorable factors. Threats: external unfavorable factors. Used for competitive analysis and strategy development."
+  }
+]
