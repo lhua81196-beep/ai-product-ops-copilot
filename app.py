@@ -17,7 +17,7 @@ from datetime import datetime
 
 from api import chat_stream, chat_json
 from kb_engine import EnterpriseKnowledgeBase
-from rag_engine import VectorStore, split_text
+
 from prompts import (
     competitive_analysis_system,
     competitive_analysis_user,
